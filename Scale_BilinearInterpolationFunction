@@ -1,0 +1,68 @@
+void Scale_BilinearInterpolation(IMAGE* src,IMAGE* dst,double targetWidth,double targetHeight)
+{
+    if (dst == NULL)
+        dst = new IMAGE(targetWidth, targetHeight);
+    else
+        dst->Resize(targetWidth, targetHeight);
+
+    double widthScaleRate = (double)src->getwidth() / targetWidth;
+    double heightScaleRate = (double)src->getheight() / targetHeight;
+
+    DWORD* readimgmemHead = GetImageBuffer(src);
+    DWORD* readimgmem = readimgmemHead;
+    DWORD* writeimgmemHead = GetImageBuffer(dst);
+    DWORD* writeimgmem = writeimgmemHead;
+
+    for (int i = 0; i < targetWidth; i++)
+    {
+        //[i,j]对应原图点精确位置
+        double x = (i + 0.5f) * widthScaleRate - 0.5f;
+
+        //防越界
+        if (x < 0)x = 0;
+        if (x >= src->getwidth())x = src->getwidth() - 2;
+
+        int fx = (int)x;
+
+        //取得坐标小数部分为权重
+        x -= fx;
+
+        int x1 = fx, x2 = fx + 1;
+
+        for (int j = 0; j < targetHeight; j++)
+        {
+            //[i, j] 对应原图点精确位置
+            double y = (j + 0.5f) * heightScaleRate - 0.5f;
+
+            //防越界
+            if (y < 0)y = 0;
+            if (y >= src->getheight())y = src->getheight() - 2;
+
+            int fy = (int)y;
+
+            //取得坐标小数部分为权重
+            y -= fy;
+
+            int y1 = fy, y2 = fy + 1;
+
+            int color[4];
+            readimgmem = readimgmemHead + (fy * src->getheight());
+
+            //色值
+            color[0] = readimgmem[y1];
+            color[1] = readimgmem[src->getheight() + y1];
+            color[2] = readimgmem[y2];
+            color[3] = readimgmem[src->getheight() + y2];
+
+            //x方向乘以权重
+            double xd = color[0] * (1 - x) + color[2] * x;
+            double xd2 = color[1] * (1 - x) + color[3] * x;
+
+            //目标图像素内存位置
+            long long dstpos = (i * targetHeight) + j;
+
+            //y方向乘以权重
+            writeimgmem[dstpos] = xd * (1 - y) + xd2 * y;
+        }
+    }
+}
