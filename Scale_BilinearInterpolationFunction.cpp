@@ -1,7 +1,6 @@
 void Scale_BilinearInterpolation(IMAGE* src, IMAGE* dst, double targetWidth, double targetHeight)
 {
 	dst->Resize(targetWidth, targetHeight);
-
 	double widthScaleRate = (double)src->getwidth() / targetWidth;
 	double heightScaleRate = (double)src->getheight() / targetHeight;
 
@@ -16,10 +15,9 @@ void Scale_BilinearInterpolation(IMAGE* src, IMAGE* dst, double targetWidth, dou
 		double x = (i + 0.5f) * heightScaleRate - 0.5f;
 
 		//防越界
-
 		int fx = (int)x;
 		if (fx < 0)fx = 0;
-		if (fx >= src->getwidth())fx = src->getwidth() - 1;
+		if (fx >= src->getheight())fx = src->getheight() - 2;
 
 		//取得坐标小数部分为权重
 		//左移22位保留更多精度
@@ -27,6 +25,7 @@ void Scale_BilinearInterpolation(IMAGE* src, IMAGE* dst, double targetWidth, dou
 		x *= 2048;
 
 		int x1 = fx, x2 = fx + 1;
+		if (x2 > src->getheight() - 1)x2 = src->getheight() - 1;
 
 		for (int j = 0; j < targetWidth; ++j)
 		{
@@ -36,7 +35,7 @@ void Scale_BilinearInterpolation(IMAGE* src, IMAGE* dst, double targetWidth, dou
 			//防越界
 			int fy = (int)y;
 			if (fy < 0)fy = 0;
-			if (fy >= src->getwidth())fy = src->getwidth() - 1;
+			if (fy >= src->getwidth())fy = src->getwidth() - 2;
 
 			//取得坐标小数部分为权重
 			//左移22位保留更多精度
@@ -44,6 +43,7 @@ void Scale_BilinearInterpolation(IMAGE* src, IMAGE* dst, double targetWidth, dou
 			y *= 2048;
 
 			int y1 = fy, y2 = fy + 1;
+			if (y2 > src->getwidth() - 1)y2 = src->getwidth() - 1;
 
 			int color[4];
 			readimgmem = readimgmemHead;
